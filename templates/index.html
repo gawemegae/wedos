@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamHib - Video Streaming Management</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --text-muted: #adb5bd;
+            --border-color: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --accent-primary: #0d6efd;
+            --accent-secondary: #6f42c1;
+            --success: #198754;
+            --warning: #fd7e14;
+            --danger: #dc3545;
+            --info: #0dcaf0;
+            --sidebar-bg: #f8f9fa;
+            --sidebar-text: #495057;
+            --sidebar-active: #0d6efd;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --navbar-bg: #ffffff;
+            --navbar-border: #dee2e6;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-primary: #1a1d23;
+            --bg-secondary: #212529;
+            --bg-tertiary: #2d3338;
+            --text-primary: #ffffff;
+            --text-secondary: #adb5bd;
+            --text-muted: #6c757d;
+            --border-color: #495057;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --accent-primary: #0d6efd;
+            --accent-secondary: #6f42c1;
+            --success: #198754;
+            --warning: #fd7e14;
+            --danger: #dc3545;
+            --info: #0dcaf0;
+            --sidebar-bg: #212529;
+            --sidebar-text: #adb5bd;
+            --sidebar-active: #0d6efd;
+            --card-bg: #2d3338;
+            --input-bg: #2d3338;
+            --input-border: #495057;
+            --navbar-bg: #212529;
+            --navbar-border: #495057;
+        }
+
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--navbar-bg) !important;
+            border-bottom: 2px solid var(--navbar-border);
+            box-shadow: 0 2px 10px var(--shadow);
+            backdrop-filter: blur(10px);
+            z-index: 1030;
+        }
+
+        .navbar-brand {
+            color: var(--text-primary) !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .navbar-text {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            background: var(--accent-primary);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--bg-secondary) 100%);
+            border-right: 2px solid var(--border-color);
+            box-shadow: 2px 0 10px var(--shadow);
+            height: calc(100vh - 76px);
+            position: fixed;
+            top: 76px;
+            left: 0;
+            width: 250px;
+            z-index: 1020;
+            overflow-y: auto;
+        }
+
+        .sidebar .nav-link {
+            color: var(--sidebar-text);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            transform: translateX(5px);
+            border-color: var(--border-color);
+        }
+
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--sidebar-active), var(--accent-secondary));
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+            border-color: var(--sidebar-active);
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: calc(100vh - 76px);
+            background-color: var(--bg-secondary);
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px var(--shadow);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px var(--shadow);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-bottom: none;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: var(--accent-primary);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #20c997);
+            border-color: var(--success);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #e74c3c);
+            border-color: var(--danger);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #f39c12);
+            border-color: var(--warning);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--info), #17a2b8);
+            border-color: var(--info);
+        }
+
+        .btn-outline-primary {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Forms */
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border: 2px solid var(--input-border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* Session Cards */
+        .session-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .session-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--success), var(--info));
+        }
+
+        .session-card.inactive::before {
+            background: linear-gradient(90deg, var(--danger), var(--warning));
+        }
+
+        .session-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--shadow);
+            border-color: var(--accent-primary);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, var(--success), #20c997);
+            color: white;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, var(--danger), #e74c3c);
+            color: white;
+        }
+
+        .status-scheduled {
+            background: linear-gradient(135deg, var(--warning), #f39c12);
+            color: white;
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: rgba(25, 135, 84, 0.1);
+            color: var(--success);
+            border-left-color: var(--success);
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+            border-left-color: var(--danger);
+        }
+
+        .alert-warning {
+            background: rgba(253, 126, 20, 0.1);
+            color: var(--warning);
+            border-left-color: var(--warning);
+        }
+
+        .alert-info {
+            background: rgba(13, 202, 240, 0.1);
+            color: var(--info);
+            border-left-color: var(--info);
+        }
+
+        /* Modals */
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            box-shadow: 0 20px 50px var(--shadow);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* Tables */
+        .table {
+            color: var(--text-primary);
+            background-color: var(--card-bg);
+        }
+
+        .table th {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+            font-weight: 600;
+        }
+
+        .table td {
+            border-color: var(--border-color);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .navbar-toggler {
+                display: block;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Custom Utilities */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Platform Icons */
+        .platform-youtube { color: #ff0000; }
+        .platform-facebook { color: #1877f2; }
+        .platform-twitch { color: #9146ff; }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .connection-online {
+            background: linear-gradient(135deg, var(--success), #20c997);
+            color: white;
+        }
+
+        .connection-offline {
+            background: linear-gradient(135deg, var(--danger), #e74c3c);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status connection-online">
+        <i class="fas fa-wifi me-1"></i> Online
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid">
+            <button class="navbar-toggler d-lg-none" type="button" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-video me-2"></i>
+                <span class="text-gradient">StreamHib</span>
+            </a>
+            
+            <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+                <span class="navbar-text me-3">
+                    <i class="fas fa-user me-1"></i>
+                    <span id="currentUser">Loading...</span>
+                </span>
+                
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                
+                <a class="btn btn-outline-danger ms-2" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid" style="margin-top: 76px;">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <ul class="nav flex-column pt-3">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('live-sessions')">
+                            <i class="fas fa-broadcast-tower"></i> Sesi Live
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('videos')">
+                            <i class="fas fa-video"></i> Video
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('schedule')">
+                            <i class="fas fa-calendar-alt"></i> Terjadwal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('inactive')">
+                            <i class="fas fa-history"></i> Nonaktif
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="content-section fade-in">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="text-gradient mb-3">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-broadcast-tower fa-2x text-success mb-2"></i>
+                                    <h5 class="card-title">Sesi Aktif</h5>
+                                    <h3 class="text-success" id="activeSessionsCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-video fa-2x text-primary mb-2"></i>
+                                    <h5 class="card-title">Total Video</h5>
+                                    <h3 class="text-primary" id="totalVideosCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-calendar-alt fa-2x text-warning mb-2"></i>
+                                    <h5 class="card-title">Terjadwal</h5>
+                                    <h3 class="text-warning" id="scheduledCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-history fa-2x text-info mb-2"></i>
+                                    <h5 class="card-title">Nonaktif</h5>
+                                    <h3 class="text-info" id="inactiveCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <button class="btn btn-success w-100" onclick="showSection('live-sessions'); $('#startStreamModal').modal('show');">
+                                                <i class="fas fa-play me-2"></i>Mulai Live Manual
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <button class="btn btn-primary w-100" onclick="showSection('schedule'); $('#scheduleModal').modal('show');">
+                                                <i class="fas fa-calendar-plus me-2"></i>Jadwalkan Live Baru
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Sessions Section -->
+                <div id="live-sessions-section" class="content-section" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h2 class="text-gradient mb-3">
+                                <i class="fas fa-broadcast-tower me-2"></i>Sesi Live (Aktif) 
+                                <span class="badge bg-success" id="activeSessionsBadge">0</span>
+                            </h2>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#startStreamModal">
+                                <i class="fas fa-plus me-2"></i>Mulai Live Manual
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="activeSessionsContainer">
+                        <div class="text-center py-5">
+                            <i class="fas fa-broadcast-tower fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Tidak ada sesi live aktif</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Videos Section -->
+                <div id="videos-section" class="content-section" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h2 class="text-gradient mb-3">
+                                <i class="fas fa-video me-2"></i>Video Management
+                            </h2>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#downloadModal">
+                                <i class="fas fa-download me-2"></i>Download Video
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-folder me-2"></i>Daftar Video
+                        </div>
+                        <div class="card-body">
+                            <div id="videosContainer">
+                                <div class="text-center py-5">
+                                    <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Tidak ada video tersedia</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Section -->
+                <div id="schedule-section" class="content-section" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h2 class="text-gradient mb-3">
+                                <i class="fas fa-calendar-alt me-2"></i>Jadwal Live
+                            </h2>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scheduleModal">
+                                <i class="fas fa-plus me-2"></i>Jadwalkan Live Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="schedulesContainer">
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Tidak ada jadwal live</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inactive Sessions Section -->
+                <div id="inactive-section" class="content-section" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h2 class="text-gradient mb-3">
+                                <i class="fas fa-history me-2"></i>Sesi Tidak Aktif 
+                                <span class="badge bg-secondary" id="inactiveSessionsBadge">0</span>
+                            </h2>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-danger" onclick="deleteAllInactiveSessions()">
+                                <i class="fas fa-trash me-2"></i>Hapus Semua Sesi Nonaktif
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="inactiveSessionsContainer">
+                        <div class="text-center py-5">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Tidak ada sesi tidak aktif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Start Stream Modal -->
+    <div class="modal fade" id="startStreamModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-play me-2"></i>Mulai Live Manual
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="startStreamForm">
+                        <div class="mb-3">
+                            <label for="sessionName" class="form-label">Nama Sesi</label>
+                            <input type="text" class="form-control" id="sessionName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="videoFile" class="form-label">File Video</label>
+                            <select class="form-select" id="videoFile" required>
+                                <option value="">Pilih video...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="streamKey" class="form-label">Stream Key</label>
+                            <input type="text" class="form-control" id="streamKey" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="platform" class="form-label">Platform</label>
+                            <select class="form-select" id="platform" required>
+                                <option value="YouTube">YouTube</option>
+                                <option value="Facebook">Facebook</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" onclick="startStream()">
+                        <i class="fas fa-play me-2"></i>Mulai Live
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Video Modal -->
+    <div class="modal fade" id="downloadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-download me-2"></i>Download Video dari Google Drive
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="downloadForm">
+                        <div class="mb-3">
+                            <label for="fileId" class="form-label">ID/URL Google Drive</label>
+                            <input type="text" class="form-control" id="fileId" required 
+                                   placeholder="Masukkan ID atau URL Google Drive">
+                            <div class="form-text">
+                                Contoh: https://drive.google.com/file/d/1ABC123.../view
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="downloadVideo()">
+                        <i class="fas fa-download me-2"></i>Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-plus me-2"></i>Jadwalkan Live Baru
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="scheduleSessionName" class="form-label">Nama Sesi</label>
+                                <input type="text" class="form-control" id="scheduleSessionName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="scheduleVideoFile" class="form-label">File Video</label>
+                                <select class="form-select" id="scheduleVideoFile" required>
+                                    <option value="">Pilih video...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="scheduleStreamKey" class="form-label">Stream Key</label>
+                                <input type="text" class="form-control" id="scheduleStreamKey" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="schedulePlatform" class="form-label">Platform</label>
+                                <select class="form-select" id="schedulePlatform" required>
+                                    <option value="YouTube">YouTube</option>
+                                    <option value="Facebook">Facebook</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="recurrenceType" class="form-label">Tipe Jadwal</label>
+                            <select class="form-select" id="recurrenceType" onchange="toggleScheduleFields()" required>
+                                <option value="one_time">Sekali Jalan</option>
+                                <option value="daily">Harian</option>
+                            </select>
+                        </div>
+                        
+                        <!-- One-time schedule fields -->
+                        <div id="oneTimeFields">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startTime" class="form-label">Waktu Mulai</label>
+                                    <input type="datetime-local" class="form-control" id="startTime">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="duration" class="form-label">Durasi (jam)</label>
+                                    <input type="number" class="form-control" id="duration" min="0" step="0.5" 
+                                           placeholder="0 = stop manual">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Daily schedule fields -->
+                        <div id="dailyFields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="startTimeOfDay" class="form-label">Waktu Mulai Harian</label>
+                                    <input type="time" class="form-control" id="startTimeOfDay">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="stopTimeOfDay" class="form-label">Waktu Berhenti Harian</label>
+                                    <input type="time" class="form-control" id="stopTimeOfDay">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="createSchedule()">
+                        <i class="fas fa-calendar-plus me-2"></i>Buat Jadwal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" style="position: fixed; top: 100px; right: 20px; z-index: 9999; max-width: 400px;"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Sidebar Management
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Section Management
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.style.display = 'none');
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                targetSection.classList.add('fade-in');
+            }
+            
+            // Update active nav link
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            const activeLink = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+
+        // Schedule form toggle
+        function toggleScheduleFields() {
+            const recurrenceType = document.getElementById('recurrenceType').value;
+            const oneTimeFields = document.getElementById('oneTimeFields');
+            const dailyFields = document.getElementById('dailyFields');
+            
+            if (recurrenceType === 'daily') {
+                oneTimeFields.style.display = 'none';
+                dailyFields.style.display = 'block';
+            } else {
+                oneTimeFields.style.display = 'block';
+                dailyFields.style.display = 'none';
+            }
+        }
+
+        // Alert system
+        function showAlert(message, type = 'info', duration = 5000) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHtml = `
+                <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show slide-in" role="alert">
+                    <i class="fas fa-${getAlertIcon(type)} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" onclick="closeAlert('${alertId}')"></button>
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('beforeend', alertHtml);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                closeAlert(alertId);
+            }, duration);
+        }
+
+        function getAlertIcon(type) {
+            const icons = {
+                'success': 'check-circle',
+                'danger': 'exclamation-triangle',
+                'warning': 'exclamation-circle',
+                'info': 'info-circle'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        function closeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }
+        }
+
+        // Socket.IO connection
+        let socket;
+        let isConnected = false;
+
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                isConnected = true;
+                updateConnectionStatus(true);
+                console.log('Connected to server');
+            });
+            
+            socket.on('disconnect', () => {
+                isConnected = false;
+                updateConnectionStatus(false);
+                console.log('Disconnected from server');
+            });
+            
+            // Listen for updates
+            socket.on('sessions_update', updateActiveSessions);
+            socket.on('inactive_sessions_update', updateInactiveSessions);
+            socket.on('schedules_update', updateSchedules);
+            socket.on('videos_update', updateVideos);
+            socket.on('trial_status_update', updateTrialStatus);
+            socket.on('stream_restart_notification', (data) => {
+                showAlert(data.message, 'warning');
+            });
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.className = 'connection-status connection-online';
+                statusElement.innerHTML = '<i class="fas fa-wifi me-1"></i> Online';
+            } else {
+                statusElement.className = 'connection-status connection-offline';
+                statusElement.innerHTML = '<i class="fas fa-wifi me-1"></i> Offline';
+            }
+        }
+
+        // API Functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(endpoint, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'API call failed');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API call error:', error);
+                throw error;
+            }
+        }
+
+        // Data update functions
+        function updateActiveSessions(sessions) {
+            const container = document.getElementById('activeSessionsContainer');
+            const badge = document.getElementById('activeSessionsBadge');
+            const count = document.getElementById('activeSessionsCount');
+            
+            badge.textContent = sessions.length;
+            count.textContent = sessions.length;
+            
+            if (sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-broadcast-tower fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Tidak ada sesi live aktif</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = sessions.map(session => `
+                <div class="session-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="mb-0">${session.name || session.id}</h5>
+                        <span class="status-badge status-active">
+                            <i class="fas fa-circle me-1"></i>Live
+                        </span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Video:</strong> ${session.video_name}</p>
+                            <p class="mb-1"><strong>Platform:</strong> 
+                                <i class="fab fa-${session.platform.toLowerCase()} platform-${session.platform.toLowerCase()} me-1"></i>
+                                ${session.platform}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Stream Key:</strong> ${session.stream_key}</p>
+                            <p class="mb-1"><strong>Waktu Mulai:</strong> ${new Date(session.startTime).toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-danger" onclick="stopSession('${session.id}')">
+                            <i class="fas fa-stop me-2"></i>Hentikan Sesi
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateInactiveSessions(data) {
+            const sessions = data.inactive_sessions || [];
+            const container = document.getElementById('inactiveSessionsContainer');
+            const badge = document.getElementById('inactiveSessionsBadge');
+            const count = document.getElementById('inactiveCount');
+            
+            badge.textContent = sessions.length;
+            count.textContent = sessions.length;
+            
+            if (sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Tidak ada sesi tidak aktif</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = sessions.map(session => `
+                <div class="session-card inactive">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="mb-0">${session.id}</h5>
+                        <span class="status-badge status-inactive">
+                            <i class="fas fa-circle me-1"></i>Inactive
+                        </span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Video:</strong> ${session.video_name}</p>
+                            <p class="mb-1"><strong>Platform:</strong> 
+                                <i class="fab fa-${session.platform.toLowerCase()} platform-${session.platform.toLowerCase()} me-1"></i>
+                                ${session.platform}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Stream Key:</strong> ${session.stream_key}</p>
+                            <p class="mb-1"><strong>Waktu Berhenti:</strong> ${session.stop_time ? new Date(session.stop_time).toLocaleString('id-ID') : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-success me-2" onclick="reactivateSession('${session.id}')">
+                            <i class="fas fa-play me-2"></i>Aktifkan Kembali
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteInactiveSession('${session.id}')">
+                            <i class="fas fa-trash me-2"></i>Hapus
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSchedules(schedules) {
+            const container = document.getElementById('schedulesContainer');
+            const count = document.getElementById('scheduledCount');
+            
+            count.textContent = schedules.length;
+            
+            if (schedules.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Tidak ada jadwal live</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = schedules.map(schedule => `
+                <div class="session-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="mb-0">${schedule.session_name_original}</h5>
+                        <span class="status-badge status-scheduled">
+                            <i class="fas fa-clock me-1"></i>Scheduled
+                        </span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Video:</strong> ${schedule.video_file}</p>
+                            <p class="mb-1"><strong>Platform:</strong> 
+                                <i class="fab fa-${schedule.platform.toLowerCase()} platform-${schedule.platform.toLowerCase()} me-1"></i>
+                                ${schedule.platform}
+                            </p>
+                            <p class="mb-1"><strong>Tipe:</strong> ${schedule.recurrence_type === 'daily' ? 'Harian' : 'Sekali Jalan'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Waktu Mulai:</strong> ${schedule.start_time_display}</p>
+                            <p class="mb-1"><strong>Waktu Berhenti:</strong> ${schedule.stop_time_display}</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-danger" onclick="cancelSchedule('${schedule.id}')">
+                            <i class="fas fa-times me-2"></i>Batalkan Jadwal
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateVideos(videos) {
+            const container = document.getElementById('videosContainer');
+            const count = document.getElementById('totalVideosCount');
+            const videoSelects = document.querySelectorAll('#videoFile, #scheduleVideoFile');
+            
+            count.textContent = videos.length;
+            
+            // Update video selects
+            videoSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Pilih video...</option>';
+                videos.forEach(video => {
+                    const option = document.createElement('option');
+                    option.value = video;
+                    option.textContent = video;
+                    if (video === currentValue) option.selected = true;
+                    select.appendChild(option);
+                });
+            });
+            
+            if (videos.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Tidak ada video tersedia</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="row">
+                    ${videos.map(video => `
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate" title="${video}">
+                                        <i class="fas fa-video me-2"></i>${video}
+                                    </h6>
+                                    <div class="btn-group w-100" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="renameVideo('${video}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteVideo('${video}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateTrialStatus(status) {
+            if (status.is_trial) {
+                showAlert(status.message, 'warning', 10000);
+            }
+        }
+
+        // Action functions
+        async function startStream() {
+            const sessionName = document.getElementById('sessionName').value;
+            const videoFile = document.getElementById('videoFile').value;
+            const streamKey = document.getElementById('streamKey').value;
+            const platform = document.getElementById('platform').value;
+            
+            if (!sessionName || !videoFile || !streamKey || !platform) {
+                showAlert('Semua field harus diisi!', 'danger');
+                return;
+            }
+            
+            try {
+                const result = await apiCall('/api/start', 'POST', {
+                    session_name: sessionName,
+                    video_file: videoFile,
+                    stream_key: streamKey,
+                    platform: platform
+                });
+                
+                showAlert(result.message, 'success');
+                document.getElementById('startStreamForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('startStreamModal')).hide();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function stopSession(sessionId) {
+            if (!confirm('Yakin ingin menghentikan sesi ini?')) return;
+            
+            try {
+                const result = await apiCall('/api/stop', 'POST', {
+                    session_id: sessionId
+                });
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function downloadVideo() {
+            const fileId = document.getElementById('fileId').value;
+            
+            if (!fileId) {
+                showAlert('ID/URL Google Drive harus diisi!', 'danger');
+                return;
+            }
+            
+            try {
+                const result = await apiCall('/api/download', 'POST', {
+                    file_id: fileId
+                });
+                
+                showAlert(result.message, 'success');
+                document.getElementById('downloadForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('downloadModal')).hide();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function createSchedule() {
+            const sessionName = document.getElementById('scheduleSessionName').value;
+            const videoFile = document.getElementById('scheduleVideoFile').value;
+            const streamKey = document.getElementById('scheduleStreamKey').value;
+            const platform = document.getElementById('schedulePlatform').value;
+            const recurrenceType = document.getElementById('recurrenceType').value;
+            
+            if (!sessionName || !videoFile || !streamKey || !platform) {
+                showAlert('Semua field harus diisi!', 'danger');
+                return;
+            }
+            
+            const data = {
+                session_name_original: sessionName,
+                video_file: videoFile,
+                stream_key: streamKey,
+                platform: platform,
+                recurrence_type: recurrenceType
+            };
+            
+            if (recurrenceType === 'one_time') {
+                const startTime = document.getElementById('startTime').value;
+                const duration = document.getElementById('duration').value;
+                
+                if (!startTime) {
+                    showAlert('Waktu mulai harus diisi untuk jadwal sekali jalan!', 'danger');
+                    return;
+                }
+                
+                data.start_time = startTime;
+                data.duration = parseFloat(duration) || 0;
+            } else {
+                const startTimeOfDay = document.getElementById('startTimeOfDay').value;
+                const stopTimeOfDay = document.getElementById('stopTimeOfDay').value;
+                
+                if (!startTimeOfDay || !stopTimeOfDay) {
+                    showAlert('Waktu mulai dan berhenti harus diisi untuk jadwal harian!', 'danger');
+                    return;
+                }
+                
+                data.start_time_of_day = startTimeOfDay;
+                data.stop_time_of_day = stopTimeOfDay;
+            }
+            
+            try {
+                const result = await apiCall('/api/schedule', 'POST', data);
+                
+                showAlert(result.message, 'success');
+                document.getElementById('scheduleForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function cancelSchedule(scheduleId) {
+            if (!confirm('Yakin ingin membatalkan jadwal ini?')) return;
+            
+            try {
+                const result = await apiCall('/api/cancel-schedule', 'POST', {
+                    id: scheduleId
+                });
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function reactivateSession(sessionId) {
+            try {
+                const result = await apiCall('/api/reactivate', 'POST', {
+                    session_id: sessionId
+                });
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function deleteInactiveSession(sessionId) {
+            if (!confirm('Yakin ingin menghapus sesi ini?')) return;
+            
+            try {
+                const result = await apiCall('/api/delete-session', 'POST', {
+                    session_id: sessionId
+                });
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function deleteAllInactiveSessions() {
+            if (!confirm('Yakin ingin menghapus SEMUA sesi tidak aktif?')) return;
+            
+            try {
+                const result = await apiCall('/api/inactive-sessions/delete-all', 'POST');
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function renameVideo(filename) {
+            const newName = prompt('Masukkan nama baru (tanpa ekstensi):', filename.replace(/\.[^/.]+$/, ""));
+            if (!newName) return;
+            
+            try {
+                const result = await apiCall('/api/videos/rename', 'POST', {
+                    old_name: filename,
+                    new_name: newName
+                });
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        async function deleteVideo(filename) {
+            if (!confirm(`Yakin ingin menghapus video "${filename}"?`)) return;
+            
+            try {
+                const result = await apiCall('/api/videos/delete', 'POST', {
+                    file_name: filename
+                });
+                
+                showAlert(result.message, 'success');
+            } catch (error) {
+                showAlert(error.message, 'danger');
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            initSocket();
+            
+            // Load initial data
+            loadInitialData();
+            
+            // Set default datetime for schedule
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30); // 30 minutes from now
+            document.getElementById('startTime').value = now.toISOString().slice(0, 16);
+        });
+
+        async function loadInitialData() {
+            try {
+                // Check session
+                const sessionCheck = await apiCall('/api/check-session');
+                document.getElementById('currentUser').textContent = sessionCheck.user;
+                
+                // Load all data
+                const [videos, sessions, inactiveSessions, schedules] = await Promise.all([
+                    apiCall('/api/videos'),
+                    apiCall('/api/sessions'),
+                    apiCall('/api/inactive-sessions'),
+                    apiCall('/api/schedule-list')
+                ]);
+                
+                updateVideos(videos);
+                updateActiveSessions(sessions);
+                updateInactiveSessions(inactiveSessions);
+                updateSchedules(schedules);
+                
+            } catch (error) {
+                console.error('Failed to load initial data:', error);
+                if (error.message.includes('Authentication required')) {
+                    window.location.href = '/login';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

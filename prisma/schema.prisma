@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions      Session[]
+  resetTokens   ResetToken[]
+  resetAttempts ResetAttempt[]
+
+  @@map("users")
+}
+
+model Session {
+  id                   String    @id @default(cuid())
+  sessionName          String    @map("session_name")
+  sanitizedServiceId   String    @map("sanitized_service_id")
+  videoName            String    @map("video_name")
+  streamKey            String    @map("stream_key")
+  platform             String
+  status               String    @default("active") // active, inactive
+  startTime            DateTime  @map("start_time") @default(now())
+  stopTime             DateTime? @map("stop_time")
+  scheduleType         String    @map("schedule_type") @default("manual") // manual, scheduled, daily_recurring_instance
+  durationMinutes      Int       @map("duration_minutes") @default(0)
+  userId               String    @map("user_id")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Schedule {
+  id                   String    @id @default(cuid())
+  sessionNameOriginal  String    @map("session_name_original")
+  sanitizedServiceId   String    @map("sanitized_service_id")
+  platform             String
+  streamKey            String    @map("stream_key")
+  videoFile            String    @map("video_file")
+  recurrenceType       String    @map("recurrence_type") // one_time, daily
+  
+  // For one-time schedules
+  startTimeIso         DateTime? @map("start_time_iso")
+  durationMinutes      Int?      @map("duration_minutes")
+  isManualStop         Boolean?  @map("is_manual_stop") @default(false)
+  
+  // For daily schedules
+  startTimeOfDay       String?   @map("start_time_of_day") // HH:MM format
+  stopTimeOfDay        String?   @map("stop_time_of_day")  // HH:MM format
+  
+  isActive             Boolean   @default(true)
+  userId               String    @map("user_id")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@map("schedules")
+}
+
+model ResetToken {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  shortToken  String   @unique @map("short_token")
+  email       String
+  username    String
+  used        Boolean  @default(false)
+  usedAt      DateTime? @map("used_at")
+  expiresAt   DateTime @map("expires_at")
+  userId      String   @map("user_id")
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reset_tokens")
+}
+
+model ResetAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ipAddress String?  @map("ip_address")
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reset_attempts")
+}
+
+model VideoFile {
+  id          String   @id @default(cuid())
+  filename    String   @unique
+  originalName String  @map("original_name")
+  size        BigInt
+  mimeType    String   @map("mime_type")
+  path        String
+  duration    Float?   // in seconds
+  resolution  String?  // e.g., "1920x1080"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("video_files")
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     String   // info, warn, error, debug
+  message   String
+  meta      String?  // JSON string for additional data
+  service   String   @default("streamhib")
+  createdAt DateTime @default(now())
+
+  @@map("system_logs")
+}
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // string, number, boolean, json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
